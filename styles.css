@@ -12,6 +12,7 @@
   --green: #34c759;
   --yellow: #ffcc00;
   --red: #ff453a;
+  --violet: #7c3aed; /* „Sehr hoch" — bewusst getrennt von der Markenfarbe */
   --radius: 12px;
 }
 
@@ -159,10 +160,11 @@ html, body {
   color: #000;
 }
 .bz-badge .unit { display: block; font-size: 9px; font-weight: 600; opacity: .75; }
+.bz-ico { display: block; font-size: 10px; font-weight: 800; line-height: 1; margin-bottom: 1px; opacity: .9; }
 .bz-low    { background: var(--red); color:#fff; }
 .bz-normal { background: var(--green); }
 .bz-high   { background: var(--yellow); }
-.bz-vhigh  { background: var(--orange); color:#fff; }
+.bz-vhigh  { background: var(--violet); color:#fff; }
 
 .ins {
   flex: 0 0 auto;
@@ -172,6 +174,22 @@ html, body {
   white-space: nowrap;
 }
 .ins small { color: var(--text-dim); font-weight: 600; }
+
+/* Kontext-Tag (nüchtern / vor dem Essen …) in der Werteliste */
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+
+/* Verlaufs-Sparkline */
+.spark { width: 100%; height: auto; display: block; }
 
 /* ---------- Stats ---------- */
 .stats { display: flex; gap: 8px; margin-bottom: 4px; }
@@ -219,6 +237,7 @@ textarea { resize: none; min-height: 60px; }
   cursor: pointer;
 }
 .chip:active { background: var(--orange); border-color: var(--orange); }
+.chip.sel { background: var(--orange); border-color: var(--orange); color: #fff; }
 
 /* ---------- Buttons ---------- */
 .btn {

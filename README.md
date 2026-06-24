@@ -11,8 +11,10 @@ Gerät gespeichert (`localStorage`).
 ## Funktionen
 
 - **Bewohner:innen verwalten** – anlegen, bearbeiten, löschen (Name, Zimmer, Notiz)
-- **BZ-Werte dokumentieren** – Blutzucker, Insulin (i.E.), Zeitpunkt und Notiz
-- **Farbcodierung** der Werte (Hypo / Normal / Hoch / Sehr hoch)
+- **BZ-Werte dokumentieren** – Blutzucker, Insulin (i.E.), Messkontext, Zeitpunkt und Notiz
+- **Messkontext** als Schnellauswahl (Nüchtern / Vor dem Essen / Nach dem Essen / Vor dem Schlafen)
+- **Farbcodierung** der Werte (Hypo / Normal / Hoch / Sehr hoch) – mit zusätzlichem Symbol
+- **Verlaufsgrafik** (Sparkline) der letzten Messungen inkl. markiertem Zielbereich
 - **Statistik** je Bewohner:in: letzter Wert, Durchschnitt, Anzahl Messungen
 - **Tagesgruppierung** der Einträge (Heute, Gestern, …)
 - **Schnellauswahl** für Insulin-Einheiten (Chips)
@@ -22,12 +24,16 @@ Gerät gespeichert (`localStorage`).
 
 ## Farbskala (mg/dL)
 
-| Bereich      | Bedeutung   | Farbe   |
-|--------------|-------------|---------|
-| `< 70`       | Hypo        | Rot     |
-| `70 – 180`   | Normal      | Grün    |
-| `181 – 250`  | Hoch        | Gelb    |
-| `> 250`      | Sehr hoch   | Orange  |
+| Bereich      | Bedeutung   | Farbe   | Symbol |
+|--------------|-------------|---------|--------|
+| `< 70`       | Hypo        | Rot     | ▼      |
+| `70 – 180`   | Normal      | Grün    | ●      |
+| `181 – 250`  | Hoch        | Gelb    | ▲      |
+| `> 250`      | Sehr hoch   | Violett | ▲▲     |
+
+Das **Symbol** wird zusätzlich zur Farbe angezeigt, damit die Kategorie auch bei
+Rot-Grün-Sehschwäche eindeutig erkennbar ist. Die Markenfarbe (Orange) ist
+bewusst von den Wert-Kategorien getrennt, um Verwechslungen zu vermeiden.
 
 > Hinweis: Die Grenzwerte sind allgemeine Orientierungswerte und ersetzen keine
 > ärztliche Vorgabe. Individuelle Zielbereiche bitte gemäß Pflege-/Arztanweisung beachten.

@@ -12,7 +12,7 @@
 
   const defaultDB = () => ({
     residents: [], // {id, name, room, note, createdAt}
-    readings: [],  // {id, residentId, ts, bz, insulin, note, createdAt}
+    readings: [],  // {id, residentId, ts, bz, insulin, ctx, note, createdAt}
     settings: { unit: "mgdl" }, // "mgdl" | "mmol"
   });
 
@@ -77,6 +77,51 @@
     if (mgdl <= 180) return "bz-normal";
     if (mgdl <= 250) return "bz-high";
     return "bz-vhigh";
+  }
+
+  // Meta-Infos je Kategorie: Symbol (zusätzlich zur Farbe, für Rot-Grün-Schwäche),
+  // Klartext-Label (für aria/title) und Farbe. Eine zentrale Quelle.
+  const BZ_META = {
+    "bz-low":   { ico: "▼",  label: "Hypo",      color: "#ff453a" },
+    "bz-normal":{ ico: "●",  label: "Normal",    color: "#34c759" },
+    "bz-high":  { ico: "▲",  label: "Hoch",      color: "#ffcc00" },
+    "bz-vhigh": { ico: "▲▲", label: "Sehr hoch", color: "#7c3aed" },
+  };
+  function bzMeta(mgdl) {
+    const cls = bzClass(mgdl);
+    return Object.assign({ cls }, BZ_META[cls]);
+  }
+
+  // Strukturierter Messkontext (statt Freitext) – wichtig für die Auswertung
+  const BZ_CONTEXTS = ["Nüchtern", "Vor dem Essen", "Nach dem Essen", "Vor dem Schlafen"];
+
+  // Mini-Verlaufsgrafik (SVG, kein Build). Erwartet Werte neueste-zuerst.
+  function sparklineSvg(list) {
+    if (list.length < 2) return "";
+    const data = list.slice(0, 20).reverse(); // chronologisch, max. 20
+    const vals = data.map((d) => d.bz);
+    const W = 300, H = 70, padX = 6, padY = 8;
+    const lo = Math.min(70, Math.min.apply(null, vals)) - 10;
+    const hi = Math.max(180, Math.max.apply(null, vals)) + 10;
+    const span = Math.max(1, hi - lo);
+    const x = (i) => padX + (i / (data.length - 1)) * (W - 2 * padX);
+    const y = (v) => H - padY - ((v - lo) / span) * (H - 2 * padY);
+    const bandTop = y(180), bandBot = y(70);
+    const pts = data.map((d, i) => `${x(i).toFixed(1)},${y(d.bz).toFixed(1)}`).join(" ");
+    const dots = data.map((d, i) => {
+      const m = bzMeta(d.bz);
+      const r = i === data.length - 1 ? 3.2 : 2.2;
+      return `<circle cx="${x(i).toFixed(1)}" cy="${y(d.bz).toFixed(1)}" r="${r}" fill="${m.color}"/>`;
+    }).join("");
+    return `
+      <div class="section-title">Verlauf · letzte ${data.length}</div>
+      <div class="card">
+        <svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true">
+          <rect x="0" y="${bandTop.toFixed(1)}" width="${W}" height="${Math.max(0, bandBot - bandTop).toFixed(1)}" fill="rgba(52,199,89,.12)"/>
+          <polyline points="${pts}" fill="none" stroke="#666" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          ${dots}
+        </svg>
+      </div>`;
   }
 
   function fmtDateTime(ts) {
@@ -185,9 +230,9 @@
       const last = lastReading(r.id);
       let lastHtml = `<span class="sub">Noch kein Wert</span>`;
       if (last) {
-        const cls = bzClass(last.bz);
+        const m = bzMeta(last.bz);
         lastHtml = `<span class="sub">Zuletzt: </span>
-          <span class="sub" style="color:#fff;font-weight:700">${toDisplay(last.bz)} ${unitLabel()}</span>
+          <span class="sub" style="color:${m.color};font-weight:700" title="${m.label}">${m.ico} ${toDisplay(last.bz)} ${unitLabel()}</span>
           <span class="sub"> · ${relDay(last.ts)}</span>`;
       }
       return `
@@ -275,11 +320,12 @@
     let statsHtml = "";
     if (list.length) {
       const last = list[0];
+      const lm = bzMeta(last.bz);
       const avg = Math.round(list.reduce((s, x) => s + x.bz, 0) / list.length);
       const insSum = list.reduce((s, x) => s + (x.insulin || 0), 0);
       statsHtml = `
         <div class="stats">
-          <div class="stat"><div class="v" style="color:${cssVarForBz(last.bz)}">${toDisplay(last.bz)}</div><div class="l">Letzter</div></div>
+          <div class="stat"><div class="v" style="color:${lm.color}" title="${lm.label}"><span style="font-size:.6em;vertical-align:middle">${lm.ico}</span> ${toDisplay(last.bz)}</div><div class="l">Letzter</div></div>
           <div class="stat"><div class="v">${toDisplay(avg)}</div><div class="l">Ø Wert</div></div>
           <div class="stat"><div class="v">${list.length}</div><div class="l">Messungen</div></div>
         </div>`;
@@ -314,12 +360,13 @@
           lastDay = day;
         }
         const time = new Date(x.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+        const m = bzMeta(x.bz);
         html += `
           <div class="card tap" data-reading="${x.id}">
             <div class="reading">
-              <div class="bz-badge ${bzClass(x.bz)}">${toDisplay(x.bz)}<span class="unit">${unitLabel()}</span></div>
+              <div class="bz-badge ${m.cls}" title="${m.label}" aria-label="${m.label}: ${toDisplay(x.bz)} ${unitLabel()}"><span class="bz-ico" aria-hidden="true">${m.ico}</span>${toDisplay(x.bz)}<span class="unit">${unitLabel()}</span></div>
               <div class="grow">
-                <div class="sub">${time} Uhr</div>
+                <div class="sub">${time} Uhr${x.ctx ? ` · <span class="tag">${esc(x.ctx)}</span>` : ""}</div>
                 ${x.note ? `<div class="ellipsis sub" style="color:#cfcfcf">${esc(x.note)}</div>` : ""}
               </div>
               ${x.insulin != null && x.insulin !== "" ? `<div class="ins">${x.insulin}<small> i.E.</small></div>` : ""}
@@ -329,7 +376,7 @@
       body = html;
     }
 
-    viewEl.innerHTML = headerCard + statsHtml + body;
+    viewEl.innerHTML = headerCard + statsHtml + sparklineSvg(list) + body;
 
     $("#res-edit").addEventListener("click", () => navigate("addResident", id));
     viewEl.querySelectorAll("[data-reading]").forEach((el) =>
@@ -340,8 +387,7 @@
   }
 
   function cssVarForBz(mgdl) {
-    const m = { "bz-low": "#ff453a", "bz-normal": "#34c759", "bz-high": "#ffcc00", "bz-vhigh": "#FE5000" };
-    return m[bzClass(mgdl)];
+    return bzMeta(mgdl).color;
   }
 
   /* ---------- View: BZ-Wert erfassen/bearbeiten ---------- */
@@ -378,6 +424,13 @@
       </label>
 
       <label class="field">
+        <span class="lab">Kontext</span>
+        <div class="chips" id="ctx-chips">
+          ${BZ_CONTEXTS.map((c) => `<span class="chip${editing && editing.ctx === c ? " sel" : ""}" data-ctx="${esc(c)}">${esc(c)}</span>`).join("")}
+        </div>
+      </label>
+
+      <label class="field">
         <span class="lab">Zeitpunkt</span>
         <input id="f-ts" type="datetime-local" value="${tsVal}" />
       </label>
@@ -399,6 +452,16 @@
       c.addEventListener("click", () => { $("#f-ins").value = c.dataset.ins; })
     );
 
+    // Kontext: Einfachauswahl (erneutes Tippen hebt die Auswahl auf)
+    let selCtx = editing && editing.ctx ? editing.ctx : null;
+    const ctxChips = $("#ctx-chips").querySelectorAll(".chip");
+    ctxChips.forEach((c) =>
+      c.addEventListener("click", () => {
+        selCtx = selCtx === c.dataset.ctx ? null : c.dataset.ctx;
+        ctxChips.forEach((o) => o.classList.toggle("sel", o.dataset.ctx === selCtx));
+      })
+    );
+
     $("#f-save").addEventListener("click", () => {
       const mgdl = fromDisplay(bzInput.value);
       if (mgdl == null || mgdl <= 0) { toast("Bitte gültigen BZ-Wert eingeben"); bzInput.focus(); return; }
@@ -411,12 +474,13 @@
       if (editing) {
         editing.bz = mgdl;
         editing.insulin = insulin;
+        editing.ctx = selCtx;
         editing.ts = ts;
         editing.note = note;
         save(); toast("Gespeichert");
       } else {
         db.readings.push({
-          id: uid(), residentId: id, bz: mgdl, insulin, ts, note, createdAt: Date.now(),
+          id: uid(), residentId: id, bz: mgdl, insulin, ctx: selCtx, ts, note, createdAt: Date.now(),
         });
         save(); toast("Eingetragen");
       }
@@ -465,10 +529,10 @@
       <div class="section-title">Farbskala (mg/dL)</div>
       <div class="card">
         <div class="row" style="gap:8px;flex-wrap:wrap">
-          <span class="bz-badge bz-low" style="min-width:auto;padding:4px 8px">&lt; 70</span>
-          <span class="bz-badge bz-normal" style="min-width:auto;padding:4px 8px">70–180</span>
-          <span class="bz-badge bz-high" style="min-width:auto;padding:4px 8px">181–250</span>
-          <span class="bz-badge bz-vhigh" style="min-width:auto;padding:4px 8px">&gt; 250</span>
+          <span class="bz-badge bz-low" style="min-width:auto;padding:4px 8px" title="Hypo">▼ &lt; 70</span>
+          <span class="bz-badge bz-normal" style="min-width:auto;padding:4px 8px" title="Normal">● 70–180</span>
+          <span class="bz-badge bz-high" style="min-width:auto;padding:4px 8px" title="Hoch">▲ 181–250</span>
+          <span class="bz-badge bz-vhigh" style="min-width:auto;padding:4px 8px" title="Sehr hoch">▲▲ &gt; 250</span>
         </div>
       </div>
 
