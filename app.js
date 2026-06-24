@@ -321,12 +321,15 @@
     if (list.length) {
       const last = list[0];
       const lm = bzMeta(last.bz);
-      const avg = Math.round(list.reduce((s, x) => s + x.bz, 0) / list.length);
-      const insSum = list.reduce((s, x) => s + (x.insulin || 0), 0);
+      const weekAgo = Date.now() - 7 * 86400000;
+      const recent = list.filter((x) => x.ts >= weekAgo);
+      const avg7 = recent.length
+        ? Math.round(recent.reduce((s, x) => s + x.bz, 0) / recent.length)
+        : null;
       statsHtml = `
         <div class="stats">
           <div class="stat"><div class="v" style="color:${lm.color}" title="${lm.label}"><span style="font-size:.6em;vertical-align:middle">${lm.ico}</span> ${toDisplay(last.bz)}</div><div class="l">Letzter</div></div>
-          <div class="stat"><div class="v">${toDisplay(avg)}</div><div class="l">Ø Wert</div></div>
+          <div class="stat"><div class="v">${avg7 == null ? "–" : toDisplay(avg7)}</div><div class="l">Ø 7 Tage</div></div>
           <div class="stat"><div class="v">${list.length}</div><div class="l">Messungen</div></div>
         </div>`;
     }
