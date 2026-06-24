@@ -11,8 +11,10 @@ Gerät gespeichert (`localStorage`).
 ## Funktionen
 
 - **Bewohner:innen verwalten** – anlegen, bearbeiten, löschen (Name, Zimmer, Notiz)
-- **BZ-Werte dokumentieren** – Blutzucker, Insulin (i.E.), Zeitpunkt und Notiz
-- **Farbcodierung** der Werte (Hypo / Normal / Hoch / Sehr hoch)
+- **BZ-Werte dokumentieren** – Blutzucker, Insulin (i.E.), Messkontext, Zeitpunkt und Notiz
+- **Messkontext** als Schnellauswahl (Nüchtern / Vor dem Essen / Nach dem Essen / Vor dem Schlafen)
+- **Farbcodierung** der Werte (Hypo / Normal / Hoch / Sehr hoch) – mit zusätzlichem Symbol
+- **Verlaufsgrafik** (Sparkline) der letzten Messungen inkl. markiertem Zielbereich
 - **Statistik** je Bewohner:in: letzter Wert, Durchschnitt, Anzahl Messungen
 - **Tagesgruppierung** der Einträge (Heute, Gestern, …)
 - **Schnellauswahl** für Insulin-Einheiten (Chips)

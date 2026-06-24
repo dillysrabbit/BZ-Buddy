@@ -12,7 +12,7 @@
 
   const defaultDB = () => ({
     residents: [], // {id, name, room, note, createdAt}
-    readings: [],  // {id, residentId, ts, bz, insulin, note, createdAt}
+    readings: [],  // {id, residentId, ts, bz, insulin, ctx, note, createdAt}
     settings: { unit: "mgdl" }, // "mgdl" | "mmol"
   });
 
@@ -90,6 +90,38 @@
   function bzMeta(mgdl) {
     const cls = bzClass(mgdl);
     return Object.assign({ cls }, BZ_META[cls]);
+  }
+
+  // Strukturierter Messkontext (statt Freitext) – wichtig für die Auswertung
+  const BZ_CONTEXTS = ["Nüchtern", "Vor dem Essen", "Nach dem Essen", "Vor dem Schlafen"];
+
+  // Mini-Verlaufsgrafik (SVG, kein Build). Erwartet Werte neueste-zuerst.
+  function sparklineSvg(list) {
+    if (list.length < 2) return "";
+    const data = list.slice(0, 20).reverse(); // chronologisch, max. 20
+    const vals = data.map((d) => d.bz);
+    const W = 300, H = 70, padX = 6, padY = 8;
+    const lo = Math.min(70, Math.min.apply(null, vals)) - 10;
+    const hi = Math.max(180, Math.max.apply(null, vals)) + 10;
+    const span = Math.max(1, hi - lo);
+    const x = (i) => padX + (i / (data.length - 1)) * (W - 2 * padX);
+    const y = (v) => H - padY - ((v - lo) / span) * (H - 2 * padY);
+    const bandTop = y(180), bandBot = y(70);
+    const pts = data.map((d, i) => `${x(i).toFixed(1)},${y(d.bz).toFixed(1)}`).join(" ");
+    const dots = data.map((d, i) => {
+      const m = bzMeta(d.bz);
+      const r = i === data.length - 1 ? 3.2 : 2.2;
+      return `<circle cx="${x(i).toFixed(1)}" cy="${y(d.bz).toFixed(1)}" r="${r}" fill="${m.color}"/>`;
+    }).join("");
+    return `
+      <div class="section-title">Verlauf · letzte ${data.length}</div>
+      <div class="card">
+        <svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true">
+          <rect x="0" y="${bandTop.toFixed(1)}" width="${W}" height="${Math.max(0, bandBot - bandTop).toFixed(1)}" fill="rgba(52,199,89,.12)"/>
+          <polyline points="${pts}" fill="none" stroke="#666" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          ${dots}
+        </svg>
+      </div>`;
   }
 
   function fmtDateTime(ts) {
@@ -334,7 +366,7 @@
             <div class="reading">
               <div class="bz-badge ${m.cls}" title="${m.label}" aria-label="${m.label}: ${toDisplay(x.bz)} ${unitLabel()}"><span class="bz-ico" aria-hidden="true">${m.ico}</span>${toDisplay(x.bz)}<span class="unit">${unitLabel()}</span></div>
               <div class="grow">
-                <div class="sub">${time} Uhr</div>
+                <div class="sub">${time} Uhr${x.ctx ? ` · <span class="tag">${esc(x.ctx)}</span>` : ""}</div>
                 ${x.note ? `<div class="ellipsis sub" style="color:#cfcfcf">${esc(x.note)}</div>` : ""}
               </div>
               ${x.insulin != null && x.insulin !== "" ? `<div class="ins">${x.insulin}<small> i.E.</small></div>` : ""}
@@ -344,7 +376,7 @@
       body = html;
     }
 
-    viewEl.innerHTML = headerCard + statsHtml + body;
+    viewEl.innerHTML = headerCard + statsHtml + sparklineSvg(list) + body;
 
     $("#res-edit").addEventListener("click", () => navigate("addResident", id));
     viewEl.querySelectorAll("[data-reading]").forEach((el) =>
@@ -392,6 +424,13 @@
       </label>
 
       <label class="field">
+        <span class="lab">Kontext</span>
+        <div class="chips" id="ctx-chips">
+          ${BZ_CONTEXTS.map((c) => `<span class="chip${editing && editing.ctx === c ? " sel" : ""}" data-ctx="${esc(c)}">${esc(c)}</span>`).join("")}
+        </div>
+      </label>
+
+      <label class="field">
         <span class="lab">Zeitpunkt</span>
         <input id="f-ts" type="datetime-local" value="${tsVal}" />
       </label>
@@ -413,6 +452,16 @@
       c.addEventListener("click", () => { $("#f-ins").value = c.dataset.ins; })
     );
 
+    // Kontext: Einfachauswahl (erneutes Tippen hebt die Auswahl auf)
+    let selCtx = editing && editing.ctx ? editing.ctx : null;
+    const ctxChips = $("#ctx-chips").querySelectorAll(".chip");
+    ctxChips.forEach((c) =>
+      c.addEventListener("click", () => {
+        selCtx = selCtx === c.dataset.ctx ? null : c.dataset.ctx;
+        ctxChips.forEach((o) => o.classList.toggle("sel", o.dataset.ctx === selCtx));
+      })
+    );
+
     $("#f-save").addEventListener("click", () => {
       const mgdl = fromDisplay(bzInput.value);
       if (mgdl == null || mgdl <= 0) { toast("Bitte gültigen BZ-Wert eingeben"); bzInput.focus(); return; }
@@ -425,12 +474,13 @@
       if (editing) {
         editing.bz = mgdl;
         editing.insulin = insulin;
+        editing.ctx = selCtx;
         editing.ts = ts;
         editing.note = note;
         save(); toast("Gespeichert");
       } else {
         db.readings.push({
-          id: uid(), residentId: id, bz: mgdl, insulin, ts, note, createdAt: Date.now(),
+          id: uid(), residentId: id, bz: mgdl, insulin, ctx: selCtx, ts, note, createdAt: Date.now(),
         });
         save(); toast("Eingetragen");
       }
