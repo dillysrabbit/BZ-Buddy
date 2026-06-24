@@ -79,6 +79,19 @@
     return "bz-vhigh";
   }
 
+  // Meta-Infos je Kategorie: Symbol (zusätzlich zur Farbe, für Rot-Grün-Schwäche),
+  // Klartext-Label (für aria/title) und Farbe. Eine zentrale Quelle.
+  const BZ_META = {
+    "bz-low":   { ico: "▼",  label: "Hypo",      color: "#ff453a" },
+    "bz-normal":{ ico: "●",  label: "Normal",    color: "#34c759" },
+    "bz-high":  { ico: "▲",  label: "Hoch",      color: "#ffcc00" },
+    "bz-vhigh": { ico: "▲▲", label: "Sehr hoch", color: "#7c3aed" },
+  };
+  function bzMeta(mgdl) {
+    const cls = bzClass(mgdl);
+    return Object.assign({ cls }, BZ_META[cls]);
+  }
+
   function fmtDateTime(ts) {
     const d = new Date(ts);
     const day = d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
@@ -185,9 +198,9 @@
       const last = lastReading(r.id);
       let lastHtml = `<span class="sub">Noch kein Wert</span>`;
       if (last) {
-        const cls = bzClass(last.bz);
+        const m = bzMeta(last.bz);
         lastHtml = `<span class="sub">Zuletzt: </span>
-          <span class="sub" style="color:#fff;font-weight:700">${toDisplay(last.bz)} ${unitLabel()}</span>
+          <span class="sub" style="color:${m.color};font-weight:700" title="${m.label}">${m.ico} ${toDisplay(last.bz)} ${unitLabel()}</span>
           <span class="sub"> · ${relDay(last.ts)}</span>`;
       }
       return `
@@ -275,11 +288,12 @@
     let statsHtml = "";
     if (list.length) {
       const last = list[0];
+      const lm = bzMeta(last.bz);
       const avg = Math.round(list.reduce((s, x) => s + x.bz, 0) / list.length);
       const insSum = list.reduce((s, x) => s + (x.insulin || 0), 0);
       statsHtml = `
         <div class="stats">
-          <div class="stat"><div class="v" style="color:${cssVarForBz(last.bz)}">${toDisplay(last.bz)}</div><div class="l">Letzter</div></div>
+          <div class="stat"><div class="v" style="color:${lm.color}" title="${lm.label}"><span style="font-size:.6em;vertical-align:middle">${lm.ico}</span> ${toDisplay(last.bz)}</div><div class="l">Letzter</div></div>
           <div class="stat"><div class="v">${toDisplay(avg)}</div><div class="l">Ø Wert</div></div>
           <div class="stat"><div class="v">${list.length}</div><div class="l">Messungen</div></div>
         </div>`;
@@ -314,10 +328,11 @@
           lastDay = day;
         }
         const time = new Date(x.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+        const m = bzMeta(x.bz);
         html += `
           <div class="card tap" data-reading="${x.id}">
             <div class="reading">
-              <div class="bz-badge ${bzClass(x.bz)}">${toDisplay(x.bz)}<span class="unit">${unitLabel()}</span></div>
+              <div class="bz-badge ${m.cls}" title="${m.label}" aria-label="${m.label}: ${toDisplay(x.bz)} ${unitLabel()}"><span class="bz-ico" aria-hidden="true">${m.ico}</span>${toDisplay(x.bz)}<span class="unit">${unitLabel()}</span></div>
               <div class="grow">
                 <div class="sub">${time} Uhr</div>
                 ${x.note ? `<div class="ellipsis sub" style="color:#cfcfcf">${esc(x.note)}</div>` : ""}
@@ -340,8 +355,7 @@
   }
 
   function cssVarForBz(mgdl) {
-    const m = { "bz-low": "#ff453a", "bz-normal": "#34c759", "bz-high": "#ffcc00", "bz-vhigh": "#FE5000" };
-    return m[bzClass(mgdl)];
+    return bzMeta(mgdl).color;
   }
 
   /* ---------- View: BZ-Wert erfassen/bearbeiten ---------- */
@@ -465,10 +479,10 @@
       <div class="section-title">Farbskala (mg/dL)</div>
       <div class="card">
         <div class="row" style="gap:8px;flex-wrap:wrap">
-          <span class="bz-badge bz-low" style="min-width:auto;padding:4px 8px">&lt; 70</span>
-          <span class="bz-badge bz-normal" style="min-width:auto;padding:4px 8px">70–180</span>
-          <span class="bz-badge bz-high" style="min-width:auto;padding:4px 8px">181–250</span>
-          <span class="bz-badge bz-vhigh" style="min-width:auto;padding:4px 8px">&gt; 250</span>
+          <span class="bz-badge bz-low" style="min-width:auto;padding:4px 8px" title="Hypo">▼ &lt; 70</span>
+          <span class="bz-badge bz-normal" style="min-width:auto;padding:4px 8px" title="Normal">● 70–180</span>
+          <span class="bz-badge bz-high" style="min-width:auto;padding:4px 8px" title="Hoch">▲ 181–250</span>
+          <span class="bz-badge bz-vhigh" style="min-width:auto;padding:4px 8px" title="Sehr hoch">▲▲ &gt; 250</span>
         </div>
       </div>
 

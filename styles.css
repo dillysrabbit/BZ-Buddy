@@ -12,6 +12,7 @@
   --green: #34c759;
   --yellow: #ffcc00;
   --red: #ff453a;
+  --violet: #7c3aed; /* „Sehr hoch" — bewusst getrennt von der Markenfarbe */
   --radius: 12px;
 }
 
@@ -159,10 +160,11 @@ html, body {
   color: #000;
 }
 .bz-badge .unit { display: block; font-size: 9px; font-weight: 600; opacity: .75; }
+.bz-ico { display: block; font-size: 10px; font-weight: 800; line-height: 1; margin-bottom: 1px; opacity: .9; }
 .bz-low    { background: var(--red); color:#fff; }
 .bz-normal { background: var(--green); }
 .bz-high   { background: var(--yellow); }
-.bz-vhigh  { background: var(--orange); color:#fff; }
+.bz-vhigh  { background: var(--violet); color:#fff; }
 
 .ins {
   flex: 0 0 auto;

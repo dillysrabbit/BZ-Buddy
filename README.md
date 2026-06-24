@@ -22,12 +22,16 @@ Gerät gespeichert (`localStorage`).
 
 ## Farbskala (mg/dL)
 
-| Bereich      | Bedeutung   | Farbe   |
-|--------------|-------------|---------|
-| `< 70`       | Hypo        | Rot     |
-| `70 – 180`   | Normal      | Grün    |
-| `181 – 250`  | Hoch        | Gelb    |
-| `> 250`      | Sehr hoch   | Orange  |
+| Bereich      | Bedeutung   | Farbe   | Symbol |
+|--------------|-------------|---------|--------|
+| `< 70`       | Hypo        | Rot     | ▼      |
+| `70 – 180`   | Normal      | Grün    | ●      |
+| `181 – 250`  | Hoch        | Gelb    | ▲      |
+| `> 250`      | Sehr hoch   | Violett | ▲▲     |
+
+Das **Symbol** wird zusätzlich zur Farbe angezeigt, damit die Kategorie auch bei
+Rot-Grün-Sehschwäche eindeutig erkennbar ist. Die Markenfarbe (Orange) ist
+bewusst von den Wert-Kategorien getrennt, um Verwechslungen zu vermeiden.
 
 > Hinweis: Die Grenzwerte sind allgemeine Orientierungswerte und ersetzen keine
 > ärztliche Vorgabe. Individuelle Zielbereiche bitte gemäß Pflege-/Arztanweisung beachten.
