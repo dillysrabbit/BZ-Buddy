@@ -22,18 +22,36 @@ Gerät gespeichert (`localStorage`).
 - **Export** der Daten als JSON
 - **r1-Hardware**: Scrollrad scrollt die Liste, Seitentaste = Zurück
 
+## Design — „Papier"
+
+Die Oberfläche folgt dem **r1 Creations Design System** (im Geist von Dieter Rams /
+BRAUN), Variante **Papier**: warmes Papiergrau statt Schwarz, ehrliche Tinte,
+**eine** Akzentfarbe (BRAUN-Orange `#D75A1E`) ausschließlich für das jeweils
+aktive Element. Werte erscheinen in **IBM Plex Mono** (tabellarische Ziffern),
+Sprache in **Helvetica**. Scharfe Geometrie (Radius 2 px), 4-px-Raster, 16-px-Rand.
+
+| Rolle    | Farbe      |
+|----------|------------|
+| Papier   | `#E7E4DE`  |
+| Fläche   | `#F0EEE9`  |
+| Tinte    | `#1B1A17`  |
+| Grau     | `#8A867E`  |
+| Hairline | `#C7C3BA`  |
+| Akzent   | `#D75A1E`  |
+
 ## Farbskala (mg/dL)
 
-| Bereich      | Bedeutung   | Farbe   | Symbol |
-|--------------|-------------|---------|--------|
-| `< 70`       | Hypo        | Rot     | ▼      |
-| `70 – 180`   | Normal      | Grün    | ●      |
-| `181 – 250`  | Hoch        | Gelb    | ▲      |
-| `> 250`      | Sehr hoch   | Violett | ▲▲     |
+| Bereich      | Bedeutung   | Farbe        | Symbol |
+|--------------|-------------|--------------|--------|
+| `< 70`       | Hypo        | Rot `#C0392B`| ▼      |
+| `70 – 180`   | Normal      | Grün `#5F7D3B`| ●     |
+| `181 – 250`  | Hoch        | Ocker `#C8862E`| ▲    |
+| `> 250`      | Sehr hoch   | Oxblut `#9E2B25`| ▲▲  |
 
-Das **Symbol** wird zusätzlich zur Farbe angezeigt, damit die Kategorie auch bei
-Rot-Grün-Sehschwäche eindeutig erkennbar ist. Die Markenfarbe (Orange) ist
-bewusst von den Wert-Kategorien getrennt, um Verwechslungen zu vermeiden.
+Normal-Werte bleiben bewusst **ruhig** – nur abweichende Werte treten farblich
+hervor. Das **Symbol** ergänzt die Farbe, damit die Kategorie auch bei
+Rot-Grün-Sehschwäche eindeutig bleibt. Die Markenfarbe (Akzent-Orange) ist von
+den Wert-Kategorien getrennt und markiert nur Interaktion.
 
 > Hinweis: Die Grenzwerte sind allgemeine Orientierungswerte und ersetzen keine
 > ärztliche Vorgabe. Individuelle Zielbereiche bitte gemäß Pflege-/Arztanweisung beachten.

@@ -82,10 +82,10 @@
   // Meta-Infos je Kategorie: Symbol (zusätzlich zur Farbe, für Rot-Grün-Schwäche),
   // Klartext-Label (für aria/title) und Farbe. Eine zentrale Quelle.
   const BZ_META = {
-    "bz-low":   { ico: "▼",  label: "Hypo",      color: "#ff453a" },
-    "bz-normal":{ ico: "●",  label: "Normal",    color: "#34c759" },
-    "bz-high":  { ico: "▲",  label: "Hoch",      color: "#ffcc00" },
-    "bz-vhigh": { ico: "▲▲", label: "Sehr hoch", color: "#7c3aed" },
+    "bz-low":   { ico: "▼",  label: "Hypo",      color: "#C0392B" },
+    "bz-normal":{ ico: "●",  label: "Normal",    color: "#5F7D3B" },
+    "bz-high":  { ico: "▲",  label: "Hoch",      color: "#C8862E" },
+    "bz-vhigh": { ico: "▲▲", label: "Sehr hoch", color: "#9E2B25" },
   };
   function bzMeta(mgdl) {
     const cls = bzClass(mgdl);
@@ -117,8 +117,10 @@
       <div class="section-title">Verlauf · letzte ${data.length}</div>
       <div class="card">
         <svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true">
-          <rect x="0" y="${bandTop.toFixed(1)}" width="${W}" height="${Math.max(0, bandBot - bandTop).toFixed(1)}" fill="rgba(52,199,89,.12)"/>
-          <polyline points="${pts}" fill="none" stroke="#666" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <rect x="0" y="${bandTop.toFixed(1)}" width="${W}" height="${Math.max(0, bandBot - bandTop).toFixed(1)}" fill="rgba(95,125,59,.14)"/>
+          <line x1="0" y1="${bandTop.toFixed(1)}" x2="${W}" y2="${bandTop.toFixed(1)}" stroke="#C7C3BA" stroke-width="0.75"/>
+          <line x1="0" y1="${bandBot.toFixed(1)}" x2="${W}" y2="${bandBot.toFixed(1)}" stroke="#C7C3BA" stroke-width="0.75"/>
+          <polyline points="${pts}" fill="none" stroke="#8A867E" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
           ${dots}
         </svg>
       </div>`;
@@ -219,7 +221,7 @@
     if (residents.length === 0) {
       viewEl.innerHTML = `
         <div class="empty">
-          <div class="big">🧑‍🦽</div>
+          <div class="big"><svg width="44" height="44" viewBox="0 0 26 26" fill="none" stroke="#8A867E" stroke-width="1.6"><circle cx="13" cy="9" r="4.2"/><path d="M5 21.5 a8 8 0 0 1 16 0"/></svg></div>
           <div>Noch keine Bewohner:innen.</div>
           <div class="sub">Tippe auf <b>+</b>, um jemanden anzulegen.</div>
         </div>`;
@@ -348,7 +350,7 @@
     let body;
     if (list.length === 0) {
       body = `<div class="empty">
-          <div class="big">🩸</div>
+          <div class="big"><svg width="48" height="34" viewBox="0 0 48 26" fill="none" stroke="#8A867E" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 14 h9 l4 -9 5 17 4 -11 3 6 h12"/></svg></div>
           <div>Noch keine BZ-Werte.</div>
           <div class="sub">Tippe auf <b>+</b> für einen neuen Eintrag.</div>
         </div>`;
@@ -370,7 +372,7 @@
               <div class="bz-badge ${m.cls}" title="${m.label}" aria-label="${m.label}: ${toDisplay(x.bz)} ${unitLabel()}"><span class="bz-ico" aria-hidden="true">${m.ico}</span>${toDisplay(x.bz)}<span class="unit">${unitLabel()}</span></div>
               <div class="grow">
                 <div class="sub">${time} Uhr${x.ctx ? ` · <span class="tag">${esc(x.ctx)}</span>` : ""}</div>
-                ${x.note ? `<div class="ellipsis sub" style="color:#cfcfcf">${esc(x.note)}</div>` : ""}
+                ${x.note ? `<div class="ellipsis sub">${esc(x.note)}</div>` : ""}
               </div>
               ${x.insulin != null && x.insulin !== "" ? `<div class="ins">${x.insulin}<small> i.E.</small></div>` : ""}
             </div>
